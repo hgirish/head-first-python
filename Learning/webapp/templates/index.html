@@ -1,18 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to the SwimClub system</title>
-</head>
-
-<body>
-  <h3>Welcome to the SwimClub system</h3>
-  <p>
-    This is the Coach's SwimClub system.
-    Begin by selecting a <a href="/swimmers">Swimmer</a> to work with.
-  </p>
-</body>
-
-</html>
+{% block body %}
+<p>
+  Begin by selecting a <a href="/swimmers">Swimmer</a> to work with.
+</p>
+{% endblock body %}

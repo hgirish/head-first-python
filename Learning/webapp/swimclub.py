@@ -1,8 +1,10 @@
 import statistics
 import hfpy_utils
+import os
 
 CHARTS = "charts/"
 FOLDER = "swimdata/"
+
 
 def read_swim_data(filename):
     """Return swim data from a file.
@@ -18,44 +20,48 @@ def read_swim_data(filename):
     for t in times:
         # The minutes value might be missing, so guard against this causing a crash.
         if ":" in t:
-                minutes, rest = t.split(":")
+            minutes, rest = t.split(":")
         else:
-            minutes ="0"
+            minutes = "0"
             rest = t
         second, hundredths = rest.split(".")
-        converts.append((int(minutes)*60*100) + (int(second)*100) + int(hundredths))
-    
+        converts.append((int(minutes)*60*100) +
+                        (int(second)*100) + int(hundredths))
+
     average = statistics.mean(converts)
     mins_secs, hundredths = f"{(average/100):.2f}".split(".")
     mins_secs = int(mins_secs)
     minutes = mins_secs // 60
-    seconds = mins_secs  - minutes*60
+    seconds = mins_secs - minutes*60
     average = f"{minutes}:{seconds:0>2}.{hundredths}"
-    return swimmer, age, distance, stroke, times, average, converts # Returned as a tuple
+    return swimmer, age, distance, stroke, times, average, converts  # Returned as a tuple
 
-def produce_bar_chart(fn):
+
+def produce_bar_chart(fn, location=CHARTS):
     """Given the name of swimmer's file, produce a HTML/SVG-based bar chart
      Save the chart to the CHARTS folder. Return the path to the bar chart file.
     """
 
-    swimmer, age, distance, stroke,  times, average, converts = read_swim_data(fn)
+    swimmer, age, distance, stroke,  times, average, converts = read_swim_data(
+        fn)
     from_max = max(converts)
-    svgs = ""
+
     times.reverse()
     converts.reverse()
 
-    title  = f"{swimmer} (Under {age}) {distance} {stroke}"
+    title = f"{swimmer} (Under {age}) {distance} {stroke}"
 
     header = f"""<!DOCTYPE html>
     <html>
         <head>
             <title>{title}</title>
+            <link rel="stylesheet" href="/static/webapp.css" />
         </head>
         <body>
-            <h3>{title}</h3>  
+            <h3>{title}</h3>
      """
     body = ""
-    for n,t in enumerate(times,0):
+    for n, t in enumerate(times, 0):
         bar_width = hfpy_utils.convert2range(converts[n], 0, from_max, 0, 400)
         body += f"""
     <svg height="30" width="450">
@@ -67,12 +73,12 @@ def produce_bar_chart(fn):
     </body>
     </html>
     """
-        
+
     page = header + body + footer
 
-    save_to = f"{CHARTS}/{fn.removesuffix('.txt')}.html"
+    save_to = f"{location}{fn.removesuffix('.txt')}.html"
 
-    with open(save_to, "w") as sf:
+    with open(os.path.realpath(save_to), "w") as sf:
         print(page, file=sf)
-    
+
     return save_to
