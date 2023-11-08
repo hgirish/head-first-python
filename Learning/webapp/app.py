@@ -14,7 +14,8 @@ def index():
 @app.get("/swimmers")
 def display_swimmers():
     swim_files = os.listdir(swimclub.FOLDER)
-    swim_files.remove(".DS_Store")
+    if ".DS_Store" in swim_files:
+        swim_files.remove(".DS_Store")
     swimmers = {}
     for file in swim_files:
         name, *_ = swimclub.read_swim_data(file)
