@@ -2,3 +2,4 @@
 /Learning/charts/*.html
 
 **/.vscode/
+*.sqlite3
