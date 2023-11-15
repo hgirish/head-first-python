@@ -5,7 +5,7 @@
     <label for="{{select_id}}">Please select a {{select_id}}:</label>
     <select name="{{select_id}}" id="{{select_id}}">
         {% for name in data %}
-        <option value="{{name}}">{{name.removesuffix(".txt").split("-",2)[-1]}}</option>
+        <option value="{{name}}">{{name}}</option>
         {% endfor %}
     </select>
     <p>
