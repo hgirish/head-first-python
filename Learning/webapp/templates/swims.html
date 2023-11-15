@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<form action="#">
+  <label for="{{select_id}}">Please select a {{select_id}}:</label>
+  <select name="{{select_id}}" id="{{select_id}}">
+    {% if not chosen_date %}
+    <option value="">-- Select a swim session --</option>
+    {% endif %}
+    {% for name in data %}
+    <option value="{{name}}">{{name}}</option>
+    {% endfor %}
+  </select>
+
+
+  <select name="" id="swimmer">
+    <option value="">-- Select -- </option>
+  </select>
+  {% if not xsswimmer %}
+  <select name="" id="event">
+    <option value="">-- Select --</option>
+  </select>
+  {% endif %}
+
+
+  <p>
+    <input type="submit" value="Select" />
+  </p>
+</form>
+<div id="chart">
+
+</div>
+
+<script>
+  window.onload = function () {
+    let dateSel = document.getElementById('chosen_date');
+    let swimmerSel = document.getElementById("swimmer");
+    let eventSel = document.getElementById("event");
+
+    dateSel.onchange = async function () {
+      if (swimmerSel && swimmerSel.length) {
+        swimmerSel.length = 1;
+      }
+      if (eventSel && eventSel.length) eventSel.length = 1;
+      data = { chosen_date: dateSel.value }
+
+      const response = await fetch("/swimmersjson", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      const swimmers = await response.json();
+      console.log(swimmers)
+      swimmers.forEach(function (item, index) {
+        swimmerSel.options[swimmerSel.options.length] = new Option(item, item);
+      });
+    }
+    swimmerSel.onchange = async function () {
+      if (eventSel && eventSel.length) eventSel.length = 1;
+
+      data = {
+        chosen_date: dateSel.value,
+        swimmer: swimmerSel.value,
+      };
+      const response = await fetch("/eventsjson", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+      const events = await response.json();
+      console.log(events);
+      events.forEach(function (item, index) {
+        eventSel.options[eventSel.options.length] = new Option(item, item)
+      });
+
+
+    }
+  }
+</script>
+{% endblock body %}

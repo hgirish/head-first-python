@@ -22,7 +22,7 @@ def display_swim_sesions():
     dates = [str(session[0].date()) for session in data]  # MySQL/MariaDB.
 
     return render_template(
-        SELECT_HTML_TEMPLATE,
+        "swims.html",
         title="Select a swim session",
         url="/swimmers",
         select_id="chosen_date",
@@ -42,6 +42,14 @@ def display_swimmers():
         url="/showevents",
         data=sorted(swimmers),
     )
+@app.post("/swimmersjson")
+def json_swimmers():
+    session["chosen_date"] = request.json["chosen_date"]
+    print( session["chosen_date"])
+    data = data_utils.get_session_swimmers(session["chosen_date"])
+    swimmers = [f"{session[0]}-{session[1]}" for session in data]
+    print(swimmers)
+    return swimmers
 
 
 @app.post("/showevents")
@@ -59,7 +67,15 @@ def display_swimmer_events():
                            select_id="event",
                            data=events,
                            )
+@app.post("/eventsjson")
+def json_swimmer_events():
+    session["swimmer"], session["age"] = request.json["swimmer"].split("-")
 
+    data = data_utils.get_swimmers_events(
+        session["swimmer"], session["age"], session["chosen_date"])
+
+    events = [f"{event[0]} {event[1]}" for event in data]
+    return events
 
 @app.post("/showbarchart")
 def show_bar_chart():
