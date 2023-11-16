@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, render_template_string, session, request
 import os
 import swimclub
 import data_utils
@@ -42,13 +42,15 @@ def display_swimmers():
         url="/showevents",
         data=sorted(swimmers),
     )
+
+
 @app.post("/swimmersjson")
 def json_swimmers():
     session["chosen_date"] = request.json["chosen_date"]
-    print( session["chosen_date"])
+
     data = data_utils.get_session_swimmers(session["chosen_date"])
     swimmers = [f"{session[0]}-{session[1]}" for session in data]
-    print(swimmers)
+
     return swimmers
 
 
@@ -67,6 +69,8 @@ def display_swimmer_events():
                            select_id="event",
                            data=events,
                            )
+
+
 @app.post("/eventsjson")
 def json_swimmer_events():
     session["swimmer"], session["age"] = request.json["swimmer"].split("-")
@@ -76,6 +80,7 @@ def json_swimmer_events():
 
     events = [f"{event[0]} {event[1]}" for event in data]
     return events
+
 
 @app.post("/showbarchart")
 def show_bar_chart():
@@ -103,6 +108,46 @@ def show_bar_chart():
                            data=list(zip(times_reversed, scaled)),
                            average=average_str,
                            worlds=world_records)
+
+
+@app.post("/chartjson")
+def json_bar_chart():
+    distance, stroke = request.json["event"].split(" ")
+
+    data = data_utils.get_swimmers_times(
+        session["swimmer"],
+        session["age"],
+        distance,
+        stroke,
+        session["chosen_date"]
+    )
+
+    times = [time[0] for time in data]
+
+    world_records = convert_utils.get_wolrds(distance, stroke)
+    average_str, times_reversed, scaled = convert_utils.perform_conversions(
+        times)
+
+    header = f"{session['swimmer']} (Under {session['age']}) {distance} {
+        stroke} - {session['chosen_date']}"
+
+    chart_template = """
+    <h2>{{title}}</h2>
+{% for row in data %}
+<svg height="30" width="400">
+    <rect height="30" width="{{row[1]}}" style="fill:rgb(0,0,255);" />
+</svg>{{row[0]}}<br />
+{% endfor %}
+<p>Average time: {{average}}</p>
+M: {{worlds[0]}} ({{worlds[2]}})<br />
+W: {{worlds[1]}} ({{worlds[3]}})
+"""
+    html = render_template_string(chart_template,
+                                  title=header,
+                                  data=list(zip(times_reversed, scaled)),
+                                  average=average_str,
+                                  worlds=world_records)
+    return html
 
 
 @app.get("/files/<swimmer>")

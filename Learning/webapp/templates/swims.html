@@ -3,8 +3,8 @@
 {% block body %}
 
 <form action="#">
-  <label for="{{select_id}}">Please select a {{select_id}}:</label>
-  <select name="{{select_id}}" id="{{select_id}}">
+
+  <select class="select" name="{{select_id}}" id="{{select_id}}">
     {% if not chosen_date %}
     <option value="">-- Select a swim session --</option>
     {% endif %}
@@ -14,19 +14,16 @@
   </select>
 
 
-  <select name="" id="swimmer">
-    <option value="">-- Select -- </option>
+  <select class="select" name="" id="swimmer">
+    <option value="">-- Select a swimmer -- </option>
   </select>
-  {% if not xsswimmer %}
-  <select name="" id="event">
-    <option value="">-- Select --</option>
+
+  <select class="select" name="" id="event">
+    <option value="">-- Select an event --</option>
   </select>
-  {% endif %}
 
 
-  <p>
-    <input type="submit" value="Select" />
-  </p>
+
 </form>
 <div id="chart">
 
@@ -38,12 +35,20 @@
     let swimmerSel = document.getElementById("swimmer");
     let eventSel = document.getElementById("event");
 
+    hide('#swimmer');
+    hide('#event')
+
     dateSel.onchange = async function () {
-      if (swimmerSel && swimmerSel.length) {
+      if (swimmerSel?.length) {
         swimmerSel.length = 1;
       }
-      if (eventSel && eventSel.length) eventSel.length = 1;
-      data = { chosen_date: dateSel.value }
+
+      if (eventSel?.length) eventSel.length = 1;
+      removeChild('#chart');
+      hide('#swimmer');
+      hide('#event')
+
+      const data = { chosen_date: dateSel.value }
 
       const response = await fetch("/swimmersjson", {
         method: "POST",
@@ -53,15 +58,17 @@
         body: JSON.stringify(data)
       });
       const swimmers = await response.json();
-      console.log(swimmers)
       swimmers.forEach(function (item, index) {
         swimmerSel.options[swimmerSel.options.length] = new Option(item, item);
       });
+      show('#swimmer');
     }
     swimmerSel.onchange = async function () {
-      if (eventSel && eventSel.length) eventSel.length = 1;
+      if (eventSel?.length) eventSel.length = 1;
+      removeChild('#chart');
+      hide('#event')
 
-      data = {
+      const data = {
         chosen_date: dateSel.value,
         swimmer: swimmerSel.value,
       };
@@ -73,13 +80,50 @@
         body: JSON.stringify(data)
       });
       const events = await response.json();
-      console.log(events);
       events.forEach(function (item, index) {
         eventSel.options[eventSel.options.length] = new Option(item, item)
       });
-
-
+      show('#event');
     }
+    eventSel.onchange = async function () {
+      removeChild('#chart');
+      const chosen_event = eventSel.value;
+
+      if (chosen_event) {
+        const data = {
+          chosen_date: dateSel.value,
+          swimmer: swimmerSel.value,
+          event: chosen_event,
+        };
+
+        const response = await fetch("/chartjson", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+        const chartData = await response.text();
+        const chartDiv = document.getElementById('chart');
+        chartDiv.insertAdjacentHTML("afterBegin", chartData)
+
+      }
+    }
+  }
+
+  function removeChild(selector) {
+    const element = document.querySelector(selector);
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  }
+  function hide(selector) {
+    const element = document.querySelector(selector);
+    element.style.display = "none";
+  }
+  function show(selector) {
+    const element = document.querySelector(selector);
+    element.style.display = "block";
   }
 </script>
 {% endblock body %}
