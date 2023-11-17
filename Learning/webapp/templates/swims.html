@@ -28,6 +28,7 @@
 <div id="chart">
 
 </div>
+<div id="loading"></div>
 
 <script>
   window.onload = function () {
@@ -46,7 +47,10 @@
       if (eventSel?.length) eventSel.length = 1;
       removeChild('#chart');
       hide('#swimmer');
-      hide('#event')
+      hide('#event');
+      displayLoading();
+
+
 
       const data = { chosen_date: dateSel.value }
 
@@ -58,6 +62,7 @@
         body: JSON.stringify(data)
       });
       const swimmers = await response.json();
+      hideLoading();
       swimmers.forEach(function (item, index) {
         swimmerSel.options[swimmerSel.options.length] = new Option(item, item);
       });
@@ -68,10 +73,15 @@
       removeChild('#chart');
       hide('#event')
 
+      displayLoading();
+
+      //await sleep(5000);
+
       const data = {
         chosen_date: dateSel.value,
         swimmer: swimmerSel.value,
       };
+
       const response = await fetch("/eventsjson", {
         method: "POST",
         headers: {
@@ -80,6 +90,7 @@
         body: JSON.stringify(data)
       });
       const events = await response.json();
+      hideLoading();
       events.forEach(function (item, index) {
         eventSel.options[eventSel.options.length] = new Option(item, item)
       });
@@ -96,6 +107,8 @@
           event: chosen_event,
         };
 
+        displayLoading();
+
         const response = await fetch("/chartjson", {
           method: "POST",
           headers: {
@@ -104,6 +117,7 @@
           body: JSON.stringify(data)
         });
         const chartData = await response.text();
+        hideLoading();
         const chartDiv = document.getElementById('chart');
         chartDiv.insertAdjacentHTML("afterBegin", chartData)
 
@@ -125,5 +139,18 @@
     const element = document.querySelector(selector);
     element.style.display = "block";
   }
+  const loader = document.querySelector("#loading");
+  function displayLoading() {
+    loader.classList.add("display");
+    setTimeout(() => {
+      loader.classList.remove("display");
+    }, 5000);
+  }
+
+  function hideLoading() {
+    loader.classList.remove("display");
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 </script>
 {% endblock body %}
